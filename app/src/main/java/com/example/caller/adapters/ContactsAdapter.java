@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.Contacts;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -63,6 +64,16 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactHolder> {
         }
     }
 
+    @SuppressLint("Range")
+    private void outCursor(Cursor cursor, String... keys) {
+        while (cursor.moveToNext()) {
+            Log.e("FF", "----------------------------");
+            for (String key : keys) {
+                Log.e("FF", key + "\t\t" + cursor.getString(cursor.getColumnIndex(key)));
+            }
+        }
+    }
+
 
     @NonNull
     @Override
@@ -71,11 +82,22 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactHolder> {
         return new ContactHolder(view);
     }
 
+    private Cursor getContactData(String contactId, String... keys) {
+        Cursor cursor = context.getContentResolver().query(
+                ContactsContract.Data.CONTENT_URI,
+                keys,
+                ContactsContract.Data.CONTACT_ID + "=?",
+                new String[]{contactId},
+                null
+        );
+        return cursor;
+    }
+
     @SuppressLint("Range")
     @Override
     public void onBindViewHolder(@NonNull ContactHolder holder, int position) {
         if (cursor.moveToPosition(position)) {
-            holder.nameField.setText(String.valueOf(
+            /*holder.nameField.setText(String.valueOf(
                     cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)))
             );
             Cursor phones = getPhones(
@@ -87,8 +109,53 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactHolder> {
                         ))
                 ));
             }
+        }*/
+            //
+            String[] keys = {
+                    ContactsContract.Data.CONTACT_ID,
+                    ContactsContract.Data.MIMETYPE,
+                    ContactsContract.Data.DATA1,
+                    ContactsContract.Data.DATA2,
+                    ContactsContract.Data.DATA3
+            };
+            Cursor cursorData = getContactData(
+                    cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID)),
+                    keys
+            );
+            //outCursor(cursorData, keys);
+            //filds
+            holder.nameField.setText(String.valueOf(
+                    cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
+            ));
+            //
+            int phoneCount = 0;
+            String val;
+            while (cursorData.moveToNext()) {
+                switch (cursorData.getString(cursorData.getColumnIndex(ContactsContract.Data.MIMETYPE))) {
+                    // phone.
+                    case ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE:
+                        val = String.valueOf(cursorData.getString(
+                                cursorData.getColumnIndex(ContactsContract.Data.DATA1)));
+                        switch (phoneCount++) {
+                            case 0:
+                                holder.phoneField.setText(val);
+                                break;
+                            case 1:
+                                holder.phoneField_2.setText(val);
+                                break;
+                        }
+                        break;
+                    //email.
+                    case ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE:
+                        val = String.valueOf(cursorData.getString(
+                                cursorData.getColumnIndex(ContactsContract.Data.DATA1)));
+                        holder.emailField.setText(val);
+                        break;
+                }
+            }
         }
     }
+
 
     @Override
     public int getItemCount() {
@@ -98,11 +165,15 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactHolder> {
     public static class ContactHolder extends RecyclerView.ViewHolder {
         TextView nameField;
         TextView phoneField;
+        TextView phoneField_2;
+        TextView emailField;
 
         public ContactHolder(@NonNull View itemView) {
             super(itemView);
             nameField = itemView.findViewById(R.id.nameField);
             phoneField = itemView.findViewById(R.id.phoneField);
+            phoneField_2 = itemView.findViewById(R.id.phoneField_2);
+            emailField = itemView.findViewById(R.id.emailField);
         }
     }
 }
