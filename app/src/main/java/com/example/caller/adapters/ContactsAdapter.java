@@ -1,9 +1,12 @@
 package com.example.caller.adapters;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
 import android.util.Log;
@@ -12,10 +15,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.caller.ContactsActivity;
 import com.example.caller.R;
+import com.example.caller.SmsActivity;
 import com.example.caller.adapters.ContactsAdapter.ContactHolder;
 
 
@@ -154,8 +162,48 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactHolder> {
                 }
             }
         }
+        //
+        holder.phoneField.setOnLongClickListener(view -> {
+            sms(view);
+            return true;
+        });
+        holder.phoneField_2.setOnLongClickListener(view -> {
+            call(view);
+            return true;
+        });
     }
 
+    private void dial(View view) {
+        TextView textView = (TextView) view;
+        if (textView.getText() == null || textView.getText().length() == 0)
+            return;
+        ((ContactsActivity) context).callPermissino.launch(Manifest.permission.CALL_PHONE);
+        //
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        intent.setData(Uri.parse("tel:" + textView.getText()));
+        context.startActivity(intent);
+
+    }
+
+    private void call(View view) {
+        TextView textView = (TextView) view;
+        if (textView.getText() == null || textView.getText().length() == 0)
+            return;
+        ((ContactsActivity) context).callPermissino.launch(Manifest.permission.CALL_PHONE);
+        //
+        Intent intent = new Intent(Intent.ACTION_CALL);
+        intent.setData(Uri.parse("tel:" + textView.getText()));
+        context.startActivity(intent);
+    }
+
+    private void sms(View view) {
+        TextView textView = (TextView) view;
+        if (textView.getText() == null || textView.getText().length() == 0)
+            return;
+        Intent intent = new Intent(context, SmsActivity.class);
+        intent.putExtra(SmsActivity.PHONE_KEY, textView.getText().toString());
+        context.startActivity(intent);
+    }
 
     @Override
     public int getItemCount() {

@@ -17,6 +17,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Caller">
         <activity
+            android:name=".SmsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ContactsActivity"
             android:exported="true">
             <intent-filter>

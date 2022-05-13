@@ -6,8 +6,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.Manifest;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.widget.BaseExpandableListAdapter;
+import android.util.Log;
 
 import com.example.caller.adapters.ContactsAdapter;
 import com.example.caller.databinding.ActivityContactsBinding;
@@ -17,6 +19,7 @@ import com.google.android.material.snackbar.Snackbar;
 public class ContactsActivity extends AppCompatActivity {
     private ActivityContactsBinding binding;
     private ActivityResultLauncher<String> readContactsPermission;
+    public ActivityResultLauncher<String> callPermissino;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,5 +47,18 @@ public class ContactsActivity extends AppCompatActivity {
         );
         //
         readContactsPermission.launch(Manifest.permission.READ_CONTACTS);
+        //
+        callPermissino = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                result -> {
+                    if (result) {
+
+                    } else {
+                        //alert
+                        //callPermissino.launch(Manifest.permission.CALL_PHONE);
+                    }
+                }
+        );
+
     }
 }
